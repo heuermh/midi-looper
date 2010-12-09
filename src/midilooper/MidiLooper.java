@@ -128,6 +128,7 @@ public final class MidiLooper
                 loops.pop();
                 current.stop();
             }
+            undo.push(current);
         }
     }
 
@@ -257,7 +258,7 @@ public final class MidiLooper
         void play()
         {
             playing = true;
-            // try ... catch RejectedExecutionException?
+            // try ... catch RejectedExecutionException?  (this may happen on redo)
             executor.scheduleWithFixedDelay(this, 1L, 1L, TimeUnit.NANOSECONDS);
         }
 
