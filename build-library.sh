@@ -7,6 +7,6 @@ cp README midilooper
 cp -R src midilooper
 cp -R examples midilooper
 cd src
-javac -classpath "../lib/promidi-2.0.jar" midilooper/*.java
+javac -classpath "../lib/rwmidi-0.1c.jar" midilooper/*.java
 jar cvf ../midilooper/library/midilooper.jar midilooper/*.class
 cd ..

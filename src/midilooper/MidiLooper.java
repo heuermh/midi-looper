@@ -31,22 +31,50 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import promidi.Controller;
-import promidi.Note;
-import promidi.ProgramChange;
+import rwmidi.Controller;
+import rwmidi.MidiInput;
+import rwmidi.MidiOutput;
+import rwmidi.Note;
+import rwmidi.ProgramChange;
+import rwmidi.SysexMessage;
 
 /**
  * MIDI looper.
  */
 public final class MidiLooper
 {
+    /** MIDI input. */
+    private final MidiInput input;
+
+    /** MIDI output. */
+    private final MidiOutput output;
+
     /** Stack of loops. */
     private final Stack<Loop> loops = new Stack<Loop>();
 
     /** Undo stack of loops. */
     private final Stack<Loop> undo = new Stack<Loop>();
 
-    // midi in, midi out
+
+    /**
+     * Create a new MIDI looper with the specified input and output.
+     *
+     * @param input MIDI input, must not be null
+     * @param output MIDI output, must not be null
+     */
+    public MidiLooper(final MidiInput input, final MidiOutput output)
+    {
+        if (input == null)
+        {
+            throw new IllegalArgumentException("input must not be null");
+        }
+        if (output == null)
+        {
+            throw new IllegalArgumentException("output must not be null");
+        }
+        this.input = input;
+        this.output = output;
+    }
 
 
     /**
@@ -197,7 +225,7 @@ public final class MidiLooper
             last = System.currentTimeMillis();
             playing = false;
             recording = true;
-            // add midi in listener
+            input.plug(this);
         }
 
 
@@ -214,7 +242,7 @@ public final class MidiLooper
             if (recording)
             {
                 recording = false;
-                // remove midi in listener
+                // unplug input?
             }
         }
 
@@ -257,7 +285,100 @@ public final class MidiLooper
             }
         }
 
-        // midi in listener; record note ons, note offs, controller (in)s, and program changes
+        /**
+         * Note on callback.
+         *
+         * @param note note
+         */
+        public void noteOnReceived(final Note note)
+        {
+            if (recording)
+            {
+                long current = System.currentTimeMillis();
+                if ((current - last) > 0)
+                {
+                    events.add(new Wait(current - last));
+                }
+                events.add(new NoteOnEvent(note));
+                last = current;
+            }
+        }
+
+        /**
+         * Note off callback.
+         *
+         * @param note note
+         */
+        public void noteOffReceived(final Note note)
+        {
+            if (recording)
+            {
+                long current = System.currentTimeMillis();
+                if ((current - last) > 0)
+                {
+                    events.add(new Wait(current - last));
+                }
+                events.add(new NoteOffEvent(note));
+                last = current;
+            }
+        }
+
+        /**
+         * Controller change callback.
+         *
+         * @param controller controller
+         */
+        public void controllerChangeReceived(final Controller controller)
+        {
+            if (recording)
+            {
+                long current = System.currentTimeMillis();
+                if ((current - last) > 0)
+                {
+                    events.add(new Wait(current - last));
+                }
+                events.add(new ControllerEvent(controller));
+                last = current;
+            }
+        }
+
+        /**
+         * Program change callback.
+         *
+         * @param programChange program change
+         */
+        public void programChangeReceived(final ProgramChange programChange)
+        {
+            if (recording)
+            {
+                long current = System.currentTimeMillis();
+                if ((current - last) > 0)
+                {
+                    events.add(new Wait(current - last));
+                }
+                events.add(new ProgramChangeEvent(programChange));
+                last = current;
+            }
+        }
+
+        /**
+         * Sysex callback.
+         *
+         * @param sysexMessage sysex message
+         */
+        public void sysexReceived(final SysexMessage sysexMessage)
+        {
+            if (recording)
+            {
+                long current = System.currentTimeMillis();
+                if ((current - last) > 0)
+                {
+                    events.add(new Wait(current - last));
+                }
+                events.add(new SysexEvent(sysexMessage));
+                last = current;
+            }
+        }
     }
 
     /**
@@ -393,7 +514,7 @@ public final class MidiLooper
 
 
         /**
-         * Create a new programChange event for the specified programChange.
+         * Create a new program change event for the specified program change.
          *
          * @param programChange program change for this program change event
          */
@@ -407,6 +528,33 @@ public final class MidiLooper
         public void run()
         {
             // send program change
+        }
+    }
+
+    /**
+     * Sysex event.
+     */
+    private class SysexEvent implements Event
+    {
+        /** Sysex message for this sysex event. */
+        private final SysexMessage sysexMessage;
+
+
+        /**
+         * Create a new sysex event for the specified sysex message.
+         *
+         * @param sysexMessage sysex message for this sysex event
+         */
+        SysexEvent(final SysexMessage sysexMessage)
+        {
+            this.sysexMessage = sysexMessage;
+        }
+
+
+        /** {@inheritDoc} */
+        public void run()
+        {
+            // send sysex message
         }
     }
 }
