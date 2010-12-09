@@ -49,6 +49,9 @@ public final class MidiLooper
     /** MIDI output. */
     private final MidiOutput output;
 
+    /** Output channel. */
+    private final int outputChannel;
+
     /** Stack of loops. */
     private final Stack<Loop> loops = new Stack<Loop>();
 
@@ -61,8 +64,9 @@ public final class MidiLooper
      *
      * @param input MIDI input, must not be null
      * @param output MIDI output, must not be null
+     * @param outputChannel output channel
      */
-    public MidiLooper(final MidiInput input, final MidiOutput output)
+    public MidiLooper(final MidiInput input, final MidiOutput output, final int outputChannel)
     {
         if (input == null)
         {
@@ -74,6 +78,7 @@ public final class MidiLooper
         }
         this.input = input;
         this.output = output;
+        this.outputChannel = outputChannel;
     }
 
 
@@ -446,7 +451,7 @@ public final class MidiLooper
         /** {@inheritDoc} */
         public void run()
         {
-            // send note on
+            output.sendNoteOn(outputChannel, note.getPitch(), note.getVelocity());
         }
     }
 
@@ -473,7 +478,7 @@ public final class MidiLooper
         /** {@inheritDoc} */
         public void run()
         {
-            // send note off
+            output.sendNoteOff(outputChannel, note.getPitch(), note.getVelocity());
         }
     }
 
@@ -500,7 +505,7 @@ public final class MidiLooper
         /** {@inheritDoc} */
         public void run()
         {
-            // send controller
+            output.sendController(outputChannel, controller.getCC(), controller.getValue());
         }
     }
 
@@ -527,7 +532,7 @@ public final class MidiLooper
         /** {@inheritDoc} */
         public void run()
         {
-            // send program change
+            output.sendProgramChange(programChange.getNumber());
         }
     }
 
@@ -554,7 +559,7 @@ public final class MidiLooper
         /** {@inheritDoc} */
         public void run()
         {
-            // send sysex message
+            output.sendSysex(sysexMessage.getMessage());
         }
     }
 }
