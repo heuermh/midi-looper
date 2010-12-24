@@ -124,8 +124,6 @@ public class Loop implements Runnable
     void play()
     {
         playing = true;
-        System.out.println(this.hashCode() + " scheduling loop task...");
-        System.out.println(this.hashCode() + "    " + events);
         future = executor.scheduleWithFixedDelay(this, 1L, 1L, TimeUnit.NANOSECONDS);
     }
 
@@ -154,7 +152,6 @@ public class Loop implements Runnable
     {
         for (Event event : events)
         {
-            System.out.println(this.hashCode() + " " + event.toString());
             event.run();
         }
     }
@@ -166,7 +163,6 @@ public class Loop implements Runnable
      */
     public void noteOnReceived(final Note note)
     {
-        System.out.println("heard note on, recording=" + recording);
         if (recording)
         {
             long current = System.currentTimeMillis();
@@ -186,7 +182,6 @@ public class Loop implements Runnable
      */
     public void noteOffReceived(final Note note)
     {
-        System.out.println("heard note off, recording=" + recording);
         if (recording)
         {
             long current = System.currentTimeMillis();
@@ -206,7 +201,6 @@ public class Loop implements Runnable
      */
     public void controllerChangeReceived(final Controller controller)
     {
-        System.out.println("heard controller, recording=" + recording);
         if (recording)
         {
             long current = System.currentTimeMillis();
@@ -226,7 +220,6 @@ public class Loop implements Runnable
      */
     public void programChangeReceived(final ProgramChange programChange)
     {
-        System.out.println("heard programChange, recording=" + recording);
         if (recording)
         {
             long current = System.currentTimeMillis();
@@ -246,7 +239,6 @@ public class Loop implements Runnable
      */
     public void sysexReceived(final SysexMessage sysexMessage)
     {
-        System.out.println("heard sysex, recording=" + recording);
         if (recording)
         {
             long current = System.currentTimeMillis();
